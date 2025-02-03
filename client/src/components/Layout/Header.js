@@ -37,13 +37,13 @@ const Header = () => {
           </button>
           <div className="collapse navbar-collapse" id="navbarTogglerDemo01">
             <Link to="/" className="navbar-brand">
-              🛒 Pottery Works
+            Pottery Works
             </Link>
-            <ul className="navbar-nav ms-auto mb-2 mb-lg-0">
+            <ul className="navbar-nav navbar-list">
               <SearchInput />
               <li className="nav-item">
                 <NavLink to="/" className="nav-link ">
-                  Home
+                 Home
                 </NavLink>
               </li>
               <li className="nav-item dropdown">

@@ -1,5 +1,5 @@
 .banner-img {
-  margin-top: 60px;
+  margin-top: 58px;
 }
 
 .home-page h1 {
@@ -8,23 +8,61 @@
 }
 
 .home-page {
-  display: flex;
-  flex-wrap: wrap;
+  width: 100%;
+  padding-right: 15px;
+    padding-left: 15px;
+    margin-right: auto;
+    margin-left: auto;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    margin-top: 1rem !important;
 }
-.home-page .card {
-  background-color: rgba(128, 128, 128, 0.097);
-  width: 18rem;
+.home-page-first{
+  flex: 1;
+  padding: 16px;
+  text-align: start;
 }
-.home-page .card-name-price {
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
+.home-page-second{
+  flex: 4;
 }
 
-.home-page .card-price {
-  color: green;
-  font-weight: bold;
+.product-content{
+display: grid;
+grid-template-columns: 1fr 1fr 1fr;
 }
+
+.card{
+  background-color: transparent;
+}
+
+.card .card-body {
+  text-align: start;
+}
+.card-name-price {
+  display: grid;
+  grid-template-columns: repeat(3,1fr);
+  /* flex-direction: column; */
+  font-size: medium;
+  color: #636363;
+}
+
+.card-name-price .card-title{
+grid-column: 1/-1;
+}
+.card-name-price .card-price{
+grid-column: 1/2;
+}
+.card-name-price .card-arrow{
+grid-column: 4/4;
+}
+
+.addtoCart{
+  background-color:var(--main-primary) ;
+  border: none;
+  padding: 8px;
+}
+
 .home-page button {
   border-radius: 0;
   width: 100%;
@@ -32,10 +70,13 @@
   border-bottom-right-radius: 5px;
   font-size: 14px;
   font-weight: bold;
+  border: none;
+  padding: 8px;
 }
 
 .home-page .card-text {
   color: rgb(90, 89, 89);
+  font-size: 14px;
 }
 
 .home-page .card img:hover {
@@ -48,11 +89,17 @@
 /* ==================
 filters
 ============== */
-.filters h4 {
-  margin-top: 100px;
-  color: gray !important;
-  border-bottom: 1px solid rgba(128, 128, 128, 0.337);
+.filters h6 {
+  margin-top: 75px;
+  color: gray;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.65);
 }
+
+.filter-content{
+  display: flex;
+  flex-direction: column;
+  padding: 8px;
+} 
 
 .ant-checkbox-wrapper:first-of-type {
   margin-left: 8px;
@@ -67,15 +114,39 @@ filters
 }
 
 .filters button {
-  background-color: black;
-  width: 100%;
+  background-color: transparent;
+  color: gray;
+  width: fit-content;
+  font-size: small;
   border: none;
-  border-radius: 0;
-  margin-top: 20px;
 }
 
 .loadmore {
   color: green;
   font-weight: bold;
   font-size: 20px !important;
+}
+
+@media (max-width: 576px) {
+ .product-content{
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .home-page{
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 992px) {
+  
+}
+
+@media (min-width: 1200px) {
+  
+}
+
+@media (min-width: 1400px) {
+  
 }

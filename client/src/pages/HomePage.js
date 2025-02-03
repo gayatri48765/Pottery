@@ -110,16 +110,16 @@ const HomePage = () => {
     <Layout title={"ALl Products - Best offers "}>
       {/* banner image */}
       <img
-        src="/images/banner.png"
+        src="/images/banner.webp"
         className="banner-img"
         alt="bannerimage"
         width={"100%"}
       />
       {/* banner image */}
-      <div className="container-fluid row mt-3 home-page">
-        <div className="col-md-3 filters">
-          <h4 className="text-center">Filter By Category</h4>
-          <div className="d-flex flex-column">
+      <div className="home-page">
+        <div className="home-page-first filters">
+          <h6 >Filter By Category</h6>
+          <div className="filter-content">
             {categories?.map((c) => (
               <Checkbox
                 key={c._id}
@@ -130,8 +130,8 @@ const HomePage = () => {
             ))}
           </div>
           {/* price filter */}
-          <h4 className="text-center mt-4">Filter By Price</h4>
-          <div className="d-flex flex-column">
+          <h6 className="mt-4">Filter By Price</h6>
+          <div className="filter-content">
             <Radio.Group onChange={(e) => setRadio(e.target.value)}>
               {Prices?.map((p) => (
                 <div key={p._id}>
@@ -140,20 +140,20 @@ const HomePage = () => {
               ))}
             </Radio.Group>
           </div>
-          <div className="d-flex flex-column">
+          <div className="filter-content">
             <button
-              className="btn btn-danger"
               onClick={() => window.location.reload()}
             >
               RESET FILTERS
             </button>
           </div>
         </div>
-        <div className="col-md-9 ">
+        <div className="home-page-second ">
           <h1 className="text-center">All Products</h1>
-          <div className="d-flex flex-wrap">
-            {products?.map((p) => (
-              <div className="card m-2" key={p._id}>
+          <div className="product-content">
+            {products?.map((p) =>{ console.log("Product key:", p);
+            return (
+              <button onClick={() => navigate(`/product/${p.slug}`)} className="card" key={p._id}>
                 <img
                   src={`/api/v1/product/product-photo/${p._id}`}
                   className="card-img-top"
@@ -161,26 +161,27 @@ const HomePage = () => {
                 />
                 <div className="card-body">
                   <div className="card-name-price">
-                    <h5 className="card-title">{p.name}</h5>
-                    <h5 className="card-title card-price">
+                    <h6 className="card-title">{p.name}</h6>
+                    <h6 className="card-title card-price">
                       {p.price.toLocaleString("en-US", {
                         style: "currency",
                         currency: "USD",
                       })}
-                    </h5>
+                    </h6>
+                    <h6 className="card-arrow"><svg xmlns="http://www.w3.org/2000/svg" width="12px" viewBox="0 0 448 512"><path d="M438.6 278.6c12.5-12.5 12.5-32.8 0-45.3l-160-160c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L338.8 224 32 224c-17.7 0-32 14.3-32 32s14.3 32 32 32l306.7 0L233.4 393.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0l160-160z"/></svg></h6>
                   </div>
                   <p className="card-text ">
                     {p.description.substring(0, 60)}...
                   </p>
-                  <div className="card-name-price">
-                    <button
-                      className="btn btn-info ms-1"
+                  {/* <div className="">
+                    {/* <button
+                      className="more-details"
                       onClick={() => navigate(`/product/${p.slug}`)}
                     >
                       More Details
-                    </button>
+                    </button> }
                     <button
-                      className="btn btn-dark ms-1"
+                      className="addtoCart"
                       onClick={() => {
                         setCart([...cart, p]);
                         localStorage.setItem(
@@ -192,10 +193,10 @@ const HomePage = () => {
                     >
                       ADD TO CART
                     </button>
-                  </div>
+                  </div> */}
                 </div>
-              </div>
-            ))}
+              </button>
+            )})}
           </div>
           <div className="m-2 p-3">
             {products && products.length < total && (

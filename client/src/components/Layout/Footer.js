@@ -3,7 +3,8 @@ import { Link } from "react-router-dom";
 const Footer = () => {
   return (
     <div className="footer">
-      <h1 className="text-center">All Right Reserved &copy; </h1>
+      <h1 className="text-center">Pottery Studio</h1>
+      <h6 className="text-center">All Right Reserved &copy; </h6>
       <p className="text-center mt-3">
         <Link to="/about">About</Link>|<Link to="/contact">Contact</Link>|
         <Link to="/policy">Privacy Policy</Link>

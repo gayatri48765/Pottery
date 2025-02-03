@@ -20,7 +20,7 @@
 .navbar {
   font-family: "Montserrat", sans-serif;
   background-color:var(--main-primary);
-  font-size: 17px;
+  font-size: 14px;
   line-height: 26px;
   text-transform: uppercase;
   box-shadow: 0 8px 6px -6px #D3D3D3;
@@ -41,7 +41,7 @@
 }
 
 .navbar-brand {
-  font-weight: 700;
+  font-weight: 600;
   font-family: "roboto", sans-serif;
   letter-spacing: 3px;
   color: rgba(var(--bs-emphasis-color-rgb), 0.65);
@@ -56,7 +56,7 @@
   border-radius: 0;
 }
 .search-form button {
-  background-color: #F5EBE0;
+  background-color:transparent;
   border-radius: 0px;
   border: none;
   color: rgba(var(--bs-emphasis-color-rgb), 0.65);
@@ -74,7 +74,8 @@
     var(--main-primary),
     #E3D5CA
   ); /* Chrome 10-25, Safari 5.1-6 */
-  background: linear-gradient(to right, var(--main-primary), #E3D5CA);
+  /* background: linear-gradient(to right, var(--main-primary), #E3D5CA); */
+  background-color: #dbdbdb ;
 }
 
 .footer a {
@@ -155,4 +156,79 @@
   background-color: #434343 !important;
   color: white;
   padding: 20px 0px;
+}
+
+
+/* my code */
+
+.navbar-list{
+    margin-left: auto;
+    margin-bottom: 0.5rem;
+}
+
+.navbar-list .nav-link span,
+.navbar-list .nav-link.active{
+  color: rgba(0, 0, 0,0.65);
+  border-bottom: none;
+}
+
+.search-container {
+  display: flex;
+}
+
+.search-container a{
+  padding-top: 6px;
+  padding-right: 6px;
+}
+.search-container input{
+  background: transparent;
+  border-bottom-width: 1px;
+  border-bottom-color:rgba(0, 0, 0,0.65) ;
+  border-bottom-style:solid ;
+}
+  
+@media (min-width: 992px) {
+  .navbar-list{
+    margin-bottom: 0;
+  }
+}
+
+.container {
+  width: 100%;
+  padding-right: 15px;
+  padding-left: 15px;
+  margin-right: auto;
+  margin-left: auto;
+}
+
+@media (min-width: 576px) {
+  .container {
+      max-width: 540px;
+  }
+}
+
+@media (min-width: 768px) {
+  .container {
+      max-width: 720px;
+  }
+}
+
+@media (min-width: 992px) {
+  .container {
+      max-width: 960px;
+  }
+}
+
+@media (min-width: 1200px) {
+  .container {
+      max-width: 1140px;
+  }
+}
+
+.container-fluid {
+  width: 100%;
+  padding-right: 15px;
+  padding-left: 15px;
+  margin-right: auto;
+  margin-left: auto;
 }

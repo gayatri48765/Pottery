@@ -3,10 +3,15 @@ import Layout from "./../components/Layout/Layout";
 import axios from "axios";
 import { useParams, useNavigate } from "react-router-dom";
 import "../styles/ProductDetailsStyles.css";
+import { useCart } from "../context/cart";
+import toast from "react-hot-toast";
+
+
 
 const ProductDetails = () => {
   const params = useParams();
   const navigate = useNavigate();
+  const [cart, setCart] = useCart();
   const [product, setProduct] = useState({});
   const [relatedProducts, setRelatedProducts] = useState([]);
 
@@ -37,10 +42,17 @@ const ProductDetails = () => {
       console.log(error);
     }
   };
+
+  const handleAddToCart = () => {
+    setCart([...cart, product]);
+    localStorage.setItem("cart", JSON.stringify([...cart, product]));
+    toast.success("Item Added to cart");
+  };
+
   return (
     <Layout>
-      <div className="row container product-details">
-        <div className="col-md-6">
+      <div className="container product-details">
+        <div className="product-details-img">
           <img
             src={`/api/v1/product/product-photo/${product._id}`}
             className="card-img-top"
@@ -49,31 +61,38 @@ const ProductDetails = () => {
             width={"350px"}
           />
         </div>
-        <div className="col-md-6 product-details-info">
-          <h1 className="text-center">Product Details</h1>
-          <hr />
-          <h6>Name : {product.name}</h6>
-          <h6>Description : {product.description}</h6>
-          <h6>
-            Price :
+        <div className="product-details-info">
+          <span className="prod-name">{product.name}</span>
+          <span className="prod-desc">{product.description}</span>
+          <span className="prod-price">
             {product?.price?.toLocaleString("en-US", {
               style: "currency",
               currency: "USD",
             })}
-          </h6>
-          <h6>Category : {product?.category?.name}</h6>
-          <button class="btn btn-secondary ms-1">ADD TO CART</button>
+          </span>
+          {/* <h6>Category : {product?.category?.name}</h6> */}
+          <button 
+          class="addtoCart" onClick={handleAddToCart}
+          // onClick={() => {
+          //   setCart([...cart, product]);
+          //   localStorage.setItem(
+          //     "cart",
+          //     JSON.stringify([...cart, product])
+          //   );
+          //   toast.success("Item Added to cart");
+          // }}
+          >ADD TO CART</button>
         </div>
       </div>
       <hr />
       <div className="row container similar-products">
-        <h4>Similar Products ➡️</h4>
+        <h4>Similar Products </h4>
         {relatedProducts.length < 1 && (
           <p className="text-center">No Similar Products found</p>
         )}
-        <div className="d-flex flex-wrap">
+        <div className="product-content">
           {relatedProducts?.map((p) => (
-            <div className="card m-2" key={p._id}>
+            <button onClick={() => navigate(`/product/${p.slug}`)} className="card" key={p._id}>
               <img
                 src={`/api/v1/product/product-photo/${p._id}`}
                 className="card-img-top"
@@ -88,18 +107,19 @@ const ProductDetails = () => {
                       currency: "USD",
                     })}
                   </h5>
+                  <h6 className="card-arrow"><svg xmlns="http://www.w3.org/2000/svg" width="12px" viewBox="0 0 448 512"><path d="M438.6 278.6c12.5-12.5 12.5-32.8 0-45.3l-160-160c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L338.8 224 32 224c-17.7 0-32 14.3-32 32s14.3 32 32 32l306.7 0L233.4 393.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0l160-160z"/></svg></h6>
                 </div>
                 <p className="card-text ">
                   {p.description.substring(0, 60)}...
                 </p>
-                <div className="card-name-price">
+                {/* <div className="card-name-price">
                   <button
                     className="btn btn-info ms-1"
                     onClick={() => navigate(`/product/${p.slug}`)}
                   >
                     More Details
                   </button>
-                  {/* <button
+                  <button
                   className="btn btn-dark ms-1"
                   onClick={() => {
                     setCart([...cart, p]);
@@ -111,10 +131,10 @@ const ProductDetails = () => {
                   }}
                 >
                   ADD TO CART
-                </button> */}
-                </div>
+                </button>
+                </div> */}
               </div>
-            </div>
+            </button>
           ))}
         </div>
       </div>
