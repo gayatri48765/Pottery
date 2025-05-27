@@ -1,141 +1,162 @@
 import React, { useState, useEffect } from "react";
 import Layout from "./../components/Layout/Layout";
-import axios from "axios";
 import { useParams, useNavigate } from "react-router-dom";
-import "../styles/ProductDetailsStyles.css";
 import { useCart } from "../context/cart";
 import toast from "react-hot-toast";
-
-
+import {productService} from "../api/productService";
+import "../styles/ProductDetailsStyles.css";
 
 const ProductDetails = () => {
   const params = useParams();
   const navigate = useNavigate();
   const [cart, setCart] = useCart();
-  const [product, setProduct] = useState({});
+  const [product, setProduct] = useState(null);
   const [relatedProducts, setRelatedProducts] = useState([]);
+  const [loading, setLoading] = useState(false);
 
-  //initalp details
   useEffect(() => {
-    if (params?.slug) getProduct();
-  }, [params?.slug]);
-  //getProduct
-  const getProduct = async () => {
-    try {
-      const { data } = await axios.get(
-        `/api/v1/product/get-product/${params.slug}`
-      );
-      setProduct(data?.product);
-      getSimilarProduct(data?.product._id, data?.product.category._id);
-    } catch (error) {
-      console.log(error);
+    if (params?.slug) {
+      fetchProductData();
     }
-  };
-  //get similar product
-  const getSimilarProduct = async (pid, cid) => {
+  }, [params?.slug]);
+
+  const fetchProductData = async () => {
     try {
-      const { data } = await axios.get(
-        `/api/v1/product/related-product/${pid}/${cid}`
-      );
-      setRelatedProducts(data?.products);
+      setLoading(true);
+      const productData = await productService.getProduct(params.slug);
+      setProduct(productData);
+      
+      if (productData) {
+        const related = await productService.getRelatedProducts(
+          productData._id,
+          productData.category._id
+        );
+        setRelatedProducts(related);
+      }
     } catch (error) {
-      console.log(error);
+      toast.error("Failed to load product details");
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleAddToCart = () => {
-    setCart([...cart, product]);
-    localStorage.setItem("cart", JSON.stringify([...cart, product]));
+    const newCart = [...cart, product];
+    setCart(newCart);
+    localStorage.setItem("cart", JSON.stringify(newCart));
     toast.success("Item Added to cart");
   };
+
+  if (loading) {
+    return (
+      <Layout>
+        <div className="container text-center py-5">
+          <div className="spinner-border" role="status">
+            <span className="visually-hidden">Loading...</span>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
+
+  if (!product) {
+    return (
+      <Layout>
+        <div className="container text-center py-5">
+          <h4>Product not found</h4>
+          <button 
+            className="btn btn-primary mt-3"
+            onClick={() => navigate(-1)}
+          >
+            Go Back
+          </button>
+        </div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout>
       <div className="container product-details">
-        <div className="product-details-img">
-          <img
-            src={`/api/v1/product/product-photo/${product._id}`}
-            className="card-img-top"
-            alt={product.name}
-            height="300"
-            width={"350px"}
-          />
+        <div className="product-details-container">
+          <div className="product-details-img">
+            <img
+              src={productService.getProductPhoto(product._id)}
+              className="card-img-top"
+              alt={product.name}
+              loading="lazy"
+            />
+          </div>
+          
+          <div className="product-details-info">
+            <h1 className="prod-name">{product.name}</h1>
+            <p className="prod-desc">{product.description}</p>
+            <div className="price-section">
+              <span className="prod-price">
+                {product.price?.toLocaleString("en-US", {
+                  style: "currency",
+                  currency: "USD",
+                })}
+              </span>
+              <button 
+                className="addtoCart" 
+                onClick={handleAddToCart}
+                aria-label={`Add ${product.name} to cart`}
+              >
+                ADD TO CART
+              </button>
+            </div>
+          </div>
         </div>
-        <div className="product-details-info">
-          <span className="prod-name">{product.name}</span>
-          <span className="prod-desc">{product.description}</span>
-          <span className="prod-price">
-            {product?.price?.toLocaleString("en-US", {
-              style: "currency",
-              currency: "USD",
-            })}
-          </span>
-          {/* <h6>Category : {product?.category?.name}</h6> */}
-          <button 
-          class="addtoCart" onClick={handleAddToCart}
-          // onClick={() => {
-          //   setCart([...cart, product]);
-          //   localStorage.setItem(
-          //     "cart",
-          //     JSON.stringify([...cart, product])
-          //   );
-          //   toast.success("Item Added to cart");
-          // }}
-          >ADD TO CART</button>
-        </div>
-      </div>
-      <hr />
-      <div className="row container similar-products">
-        <h4>Similar Products </h4>
-        {relatedProducts.length < 1 && (
-          <p className="text-center">No Similar Products found</p>
-        )}
-        <div className="product-content">
-          {relatedProducts?.map((p) => (
-            <button onClick={() => navigate(`/product/${p.slug}`)} className="card" key={p._id}>
-              <img
-                src={`/api/v1/product/product-photo/${p._id}`}
-                className="card-img-top"
-                alt={p.name}
-              />
-              <div className="card-body">
-                <div className="card-name-price">
-                  <h5 className="card-title">{p.name}</h5>
-                  <h5 className="card-title card-price">
-                    {p.price.toLocaleString("en-US", {
-                      style: "currency",
-                      currency: "USD",
-                    })}
-                  </h5>
-                  <h6 className="card-arrow"><svg xmlns="http://www.w3.org/2000/svg" width="12px" viewBox="0 0 448 512"><path d="M438.6 278.6c12.5-12.5 12.5-32.8 0-45.3l-160-160c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L338.8 224 32 224c-17.7 0-32 14.3-32 32s14.3 32 32 32l306.7 0L233.4 393.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0l160-160z"/></svg></h6>
-                </div>
-                <p className="card-text ">
-                  {p.description.substring(0, 60)}...
-                </p>
-                {/* <div className="card-name-price">
-                  <button
-                    className="btn btn-info ms-1"
-                    onClick={() => navigate(`/product/${p.slug}`)}
-                  >
-                    More Details
-                  </button>
-                  <button
-                  className="btn btn-dark ms-1"
-                  onClick={() => {
-                    setCart([...cart, p]);
-                    localStorage.setItem(
-                      "cart",
-                      JSON.stringify([...cart, p])
-                    );
-                    toast.success("Item Added to cart");
-                  }}
+
+        <hr className="divider" />
+
+        <div className="similar-products">
+          <h3>Similar Products</h3>
+          
+          {relatedProducts.length === 0 ? (
+            <p className="no-products">No similar products found</p>
+          ) : (
+            <div className="product-grid">
+              {relatedProducts.map((p) => (
+                <div 
+                  className="product-card"
+                  key={p._id}
+                  onClick={() => navigate(`/product/${p.slug}`)}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => e.key === 'Enter' && navigate(`/product/${p.slug}`)}
+                  aria-label={`View ${p.name} details`}
                 >
-                  ADD TO CART
-                </button>
-                </div> */}
-              </div>
-            </button>
-          ))}
+                  <img
+                    src={productService.getProductPhoto(p._id)}
+                    className="card-img"
+                    alt={p.name}
+                    loading="lazy"
+                  />
+                  <div className="card-body">
+                    <div className="card-name-price">
+                      <h5 className="card-title">{p.name}</h5>
+                      <h5 className="card-price">
+                        {p.price.toLocaleString("en-US", {
+                          style: "currency",
+                          currency: "USD",
+                        })}
+                      </h5>
+                    </div>
+                    <p className="card-text">
+                      {p.description.substring(0, 60)}...
+                    </p>
+                    <div className="card-arrow">
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512">
+                        <path d="M438.6 278.6c12.5-12.5 12.5-32.8 0-45.3l-160-160c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L338.8 224 32 224c-17.7 0-32 14.3-32 32s14.3 32 32 32l306.7 0L233.4 393.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0l160-160z"/>
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </Layout>

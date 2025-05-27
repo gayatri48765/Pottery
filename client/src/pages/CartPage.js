@@ -1,198 +1,210 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import Layout from "./../components/Layout/Layout";
 import { useCart } from "../context/cart";
 import { useAuth } from "../context/auth";
 import { useNavigate } from "react-router-dom";
 import DropIn from "braintree-web-drop-in-react";
 import { AiFillWarning } from "react-icons/ai";
-import axios from "axios";
 import toast from "react-hot-toast";
+import { paymentService } from "../api/cart";
 import "../styles/CartStyles.css";
 
 const CartPage = () => {
-  const [auth, setAuth] = useAuth();
+  const [auth] = useAuth();
   const [cart, setCart] = useCart();
-  const [clientToken, setClientToken] = useState("");
-  const [instance, setInstance] = useState("");
+  // const [clientToken, setClientToken] = useState("");
+  const [instance, setInstance] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
   const navigate = useNavigate();
 
-  //total price
-  const totalPrice = () => {
-    try {
-      let total = 0;
-      cart?.map((item) => {
-        total = total + item.price;
-      });
-      return total.toLocaleString("en-US", {
-        style: "currency",
-        currency: "USD",
-      });
-    } catch (error) {
-      console.log(error);
-    }
-  };
-  //detele item
+  const totalPrice = useCallback(() => {
+    if (!Array.isArray(cart)) return "$0.00";
+    return cart.reduce((total, item) => total + (item?.price || 0), 0).toLocaleString("en-US", {
+      style: "currency",
+      currency: "USD",
+    });
+  }, [cart]);
+
   const removeCartItem = (pid) => {
     try {
-      let myCart = [...cart];
-      let index = myCart.findIndex((item) => item._id === pid);
-      myCart.splice(index, 1);
-      setCart(myCart);
-      localStorage.setItem("cart", JSON.stringify(myCart));
-    } catch (error) {
-      console.log(error);
+      if (!Array.isArray(cart)) {
+        setCart([]);
+        return;
+      }
+      const newCart = cart.filter(item => item?._id !== pid);
+      setCart(newCart);
+      localStorage.setItem("cart", JSON.stringify(newCart));
+      toast.success("Item removed from cart");
+    } catch (err) {
+      toast.error("Failed to remove item");
+      console.error(err);
     }
   };
 
-  //get payment gateway token
-  const getToken = async () => {
-    try {
-      const { data } = await axios.get("/api/v1/product/braintree/token");
-      setClientToken(data?.clientToken);
-    } catch (error) {
-      console.log(error);
-    }
-  };
+  // const getToken = useCallback(async () => {
+  //   if (!auth?.token) return;
+    
+  //   try {
+  //     const token = await paymentService.getClientToken();
+  //     setClientToken(token);
+  //     setError(null);
+  //   } catch (error) {
+  //     setError("Failed to load payment gateway");
+  //     toast.error("Failed to load payment gateway");
+  //   }
+  // }, [auth?.token]);
+
+  // const handlePayment = async () => {
+  //   if (!instance || !auth?.user?.address) return;
+
+  //   try {
+  //     setLoading(true);
+  //     const { nonce } = await instance.requestPaymentMethod();
+  //     await paymentService.processPayment({ nonce, cart });
+      
+  //     localStorage.removeItem("cart");
+  //     setCart([]);
+  //     navigate("/dashboard/user/orders");
+  //     toast.success("Payment Completed Successfully");
+  //   } catch (error) {
+  //     setError("Payment failed. Please try again.");
+  //     toast.error("Payment failed. Please try again.");
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+
+  // useEffect(() => {
+  //   getToken();
+  // }, [getToken]);
+
+  // Debugging logs
   useEffect(() => {
-    getToken();
-  }, [auth?.token]);
+    console.log("Current cart state:", cart);
+    console.log("Auth state:", auth);
+    // console.log("Client token:", clientToken);
+  }, [cart, auth]);
 
-  //handle payments
-  const handlePayment = async () => {
-    try {
-      setLoading(true);
-      const { nonce } = await instance.requestPaymentMethod();
-      const { data } = await axios.post("/api/v1/product/braintree/payment", {
-        nonce,
-        cart,
-      });
-      setLoading(false);
-      localStorage.removeItem("cart");
-      setCart([]);
-      navigate("/dashboard/user/orders");
-      toast.success("Payment Completed Successfully ");
-    } catch (error) {
-      console.log(error);
-      setLoading(false);
-    }
-  };
   return (
     <Layout>
-      <div className=" cart-page">
-        {/* <div className="">
-          <div className="col-md-12">
-            <h1 className="text-center bg-light p-2 mb-1">
-              {!auth?.user
-                ? "Hello Guest"
-                : `Hello  ${auth?.token && auth?.user?.name}`}
-              <p className="text-center">
-                {cart?.length
-                  ? `You Have ${cart.length} items in your cart ${
-                      auth?.token ? "" : "please login to checkout !"
-                    }`
-                  : " Your Cart Is Empty"}
-              </p>
-            </h1>
+      <div className="cart-page">
+        <div className="cart-heading">Shopping Cart</div>
+        
+        {error && (
+          <div className="error-message">
+            <AiFillWarning /> {error}
           </div>
-        </div> */}
-        <div className="cart-heading">
-          Shopping Cart
-        </div>
-        <div className="container ">
-          <div className="cart-info ">
-            <div className="cart-prod">
-              {cart?.map((p) => (
-                <div className="cart-prod-info" key={p._id}>
-                  <div className="img">
-                    <img
-                      src={`/api/v1/product/product-photo/${p._id}`}
-                      alt={p.name}
-                      width="40%"
-                    />
-                  </div>
-                  <div className="desc">
-                    <p>{p.name}</p>
-                    <p style={{fontWeight:'bold'}}>${p.price}</p>
-                  </div>
-                  <div className="remove">
-                    <button
-                      className="addtoCart"
-                      onClick={() => removeCartItem(p._id)}
-                    >
-                      Remove
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-            <div className="cart-summary ">
-              <h2>Cart Summary</h2>
-              <p>Total | Checkout | Payment</p>
-              <hr />
-              <h4>Total : {totalPrice()} </h4>
-              {auth?.user?.address ? (
-                <>
-                  <div className="mb-3">
-                    <h4>Current Address</h4>
-                    <h5>{auth?.user?.address}</h5>
-                    <button
-                      className="btn btn-outline-warning"
-                      onClick={() => navigate("/dashboard/user/profile")}
-                    >
-                      Update Address
-                    </button>
-                  </div>
-                </>
-              ) : (
-                <div className="mb-3">
-                  {auth?.token ? (
-                    <button
-                      className="btn btn-outline-warning"
-                      onClick={() => navigate("/dashboard/user/profile")}
-                    >
-                      Update Address
-                    </button>
-                  ) : (
-                    <button
-                      className="btn btn-outline-warning"
-                      onClick={() =>
-                        navigate("/login", {
-                          state: "/cart",
-                        })
-                      }
-                    >
-                      Plase Login to checkout
-                    </button>
-                  )}
-                </div>
-              )}
-              <div className="mt-2">
-                {!clientToken || !auth?.token || !cart?.length ? (
-                  ""
-                ) : (
-                  <>
-                    <DropIn
-                      options={{
-                        authorization: clientToken,
-                        paypal: {
-                          flow: "vault",
-                        },
-                      }}
-                      onInstance={(instance) => setInstance(instance)}
-                    />
+        )}
 
-                    <button
-                      className="btn btn-primary"
-                      onClick={handlePayment}
-                      disabled={loading || !instance || !auth?.user?.address}
-                    >
-                      {loading ? "Processing ...." : "Make Payment"}
-                    </button>
-                  </>
-                )}
+        <div className="container">
+          <div className="cart-info">
+            {!cart || cart.length === 0 ? (
+              <div className="empty-cart">
+                <h3>Your cart is empty</h3>
+                <button 
+                  className="continue-shopping"
+                  onClick={() => navigate("/")}
+                >
+                  Continue Shopping
+                </button>
               </div>
-            </div>
+            ) : (
+              <>
+                <div className="cart-prod">
+                  {cart.map((p) => (
+                    <div className="cart-prod-info" key={p._id}>
+                      <div className="img">
+                        <img
+                          src={p.image || paymentService.getProductPhoto(p._id)}
+                          alt={p.name || "Product image"}
+                          width="40%"
+                          loading="lazy"
+                          onError={(e) => {
+                            e.target.src = "/default-product-image.png";
+                          }}
+                        />
+                      </div>
+                      <div className="desc">
+                        <p>{p.name || "Unnamed Product"}</p>
+                        <p style={{ fontWeight: 'bold' }}>
+                          ${(p.price || 0).toFixed(2)}
+                        </p>
+                      </div>
+                      <div className="remove">
+                        <button
+                          className="remove-btn"
+                          onClick={() => removeCartItem(p._id)}
+                          aria-label={`Remove ${p.name} from cart`}
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="cart-summary">
+                  <h2>Cart Summary</h2>
+                  <p>Total | Checkout | Payment</p>
+                  <hr />
+                  <h4>Total: {totalPrice()}</h4>
+
+                  {!auth?.token ? (
+                    <div className="auth-required">
+                      <AiFillWarning className="warning-icon" />
+                      <button
+                        className="login-btn"
+                        onClick={() => navigate("/login", { state: "/cart" })}
+                      >
+                        Please Login to checkout
+                      </button>
+                    </div>
+                  ) : !auth?.user?.address ? (
+                    <div className="address-required">
+                      <button
+                        className="update-address-btn"
+                        onClick={() => navigate("/dashboard/user/profile")}
+                      >
+                        Add Shipping Address
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="current-address">
+                      <h4>Current Address</h4>
+                      <p>{auth.user.address || "No address provided"}</p>
+                      <button
+                        className="update-address-btn"
+                        onClick={() => navigate("/dashboard/user/profile")}
+                      >
+                        Update Address
+                      </button>
+                    </div>
+                  )}
+
+                  {/* {clientToken && auth?.token && Array.isArray(cart) && cart.length > 0 && (
+                    <div className="payment-section"> Failed to load payment gateway
+                      <DropIn
+                        options={{
+                          authorization: clientToken,
+                          paypal: { flow: "vault" },
+                        }}
+                        onInstance={(instance) => setInstance(instance)}
+                      />
+
+                      <button
+                        className="payment-btn"
+                        onClick={handlePayment}
+                        disabled={loading || !instance || !auth?.user?.address}
+                        aria-busy={loading}
+                      >
+                        {loading ? "Processing..." : "Make Payment"}
+                      </button>
+                    </div>
+                  )} */}
+                </div>
+              </>
+            )}
           </div>
         </div>
       </div>

@@ -1,23 +1,50 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { Link } from "react-router-dom";
 import useCategory from "../hooks/useCategory";
 import Layout from "../components/Layout/Layout";
+import { FaPaintRoller, FaFire } from "react-icons/fa";
+import "../styles/Categories.css";
+import { GiClayBrick } from "react-icons/gi";
+
+
 const Categories = () => {
   const categories = useCategory();
+  
+  const categoryIcons = {
+    "Pottery Wheels": <GiClayBrick />,
+    "Glazes": <FaPaintRoller />,
+    "Kilns": <FaFire />,
+  };
+
   return (
-    <Layout title={"All Categories"}>
-      <div className="container" style={{ marginTop: "100px" }}>
-        <div className="row container">
+    <Layout title={"Our Pottery Categories"}>
+      <div className="categories-container">
+        <div className="categories-header">
+          <h1>Explore Our Pottery Collection</h1>
+          <p>Discover handcrafted ceramics for every style and purpose</p>
+        </div>
+        
+        <div className="categories-grid">
           {categories.map((c) => (
-            <div className="col-md-4 mt-5 mb-3 gx-3 gy-3" key={c._id}>
-              <div className="card">
-                <Link to={`/category/${c.slug}`} className="btn cat-btn">
-                  {c.name}
-                </Link>
-              </div>
+            <div className="category-card" key={c._id}>
+              <Link to={`/category/${c.slug}`} className="category-link">
+                <div className="category-icon">
+                  {categoryIcons[c.name] || <GiClayBrick />}
+                </div>
+                <h3>{c.name}</h3>
+                <div className="category-hover-effect"></div>
+              </Link>
             </div>
           ))}
         </div>
+        
+        {localStorage.getItem("auth") && (
+          <div className="admin-actions">
+            <Link to="/admin/add-category" className="add-category-btn">
+              + Add New Category
+            </Link>
+          </div>
+        )}
       </div>
     </Layout>
   );

@@ -1,97 +1,119 @@
 import React, { useState, useEffect } from "react";
 import Layout from "../components/Layout/Layout";
 import { useParams, useNavigate } from "react-router-dom";
+import { productService } from "../api/productService";
 import "../styles/CategoryProductStyles.css";
-import axios from "axios";
+import { FaArrowLeft, FaSearch, FaSpinner } from "react-icons/fa";
+
 const CategoryProduct = () => {
   const params = useParams();
   const navigate = useNavigate();
   const [products, setProducts] = useState([]);
-  const [category, setCategory] = useState([]);
+  const [category, setCategory] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (params?.slug) getPrductsByCat();
+    if (params?.slug) {
+      fetchProductsByCategory();
+    }
   }, [params?.slug]);
-  const getPrductsByCat = async () => {
+
+  const fetchProductsByCategory = async () => {
     try {
-      const { data } = await axios.get(
-        `/api/v1/product/product-category/${params.slug}`
-      );
-      setProducts(data?.products);
-      setCategory(data?.category);
+      setLoading(true);
+      const { products, category } = await productService.getProductsByCategory(params.slug);
+      setProducts(products);
+      setCategory(category);
     } catch (error) {
-      console.log(error);
+      console.error("Failed to load category products:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
+  if (loading) {
+    return (
+      <Layout>
+        <div className="category-loading">
+          <FaSpinner className="spinner-icon" />
+          <p>Loading pottery collection...</p>
+        </div>
+      </Layout>
+    );
+  }
+
   return (
     <Layout>
-      <div className="container mt-3 category">
-        <h4 className="text-center">Category - {category?.name}</h4>
-        <h6 className="text-center">{products?.length} result found </h6>
-        <div className="row">
-          <div className="col-md-9 offset-1">
-            <div className="d-flex flex-wrap">
-              {products?.map((p) => (
-                <div className="card m-2" key={p._id}>
+      <div className="category-container">
+        <button onClick={() => navigate(-1)} className="back-button">
+          <FaArrowLeft /> Back to Categories
+        </button>
+
+        {category ? (
+          <div className="category-header">
+            <h1>{category.name}</h1>
+            <p className="product-count">{products.length} handcrafted {products.length !== 1 ? 'pieces' : 'piece'} available</p>
+          </div>
+        ) : (
+          <h4 className="text-center">Loading Category...</h4>
+        )}
+
+        {products.length === 0 && !loading ? (
+          <div className="empty-category">
+            <FaSearch className="search-icon" />
+            <h3>No pottery found in this category</h3>
+            <p>Our artisans haven't created pieces for this category yet.</p>
+            <button 
+              className="browse-button"
+              onClick={() => navigate('/categories')}
+            >
+              Explore Other Categories
+            </button>
+          </div>
+        ) : (
+          <div className="products-grid">
+            {products.map((p) => (
+              <div className="product-card" key={p._id}>
+                <div className="product-image-container">
                   <img
-                    src={`/api/v1/product/product-photo/${p._id}`}
-                    className="card-img-top"
+                    src={productService.getProductPhoto(p._id)}
+                    className="product-image"
                     alt={p.name}
+                    loading="lazy"
                   />
-                  <div className="card-body">
-                    <div className="card-name-price">
-                      <h5 className="card-title">{p.name}</h5>
-                      <h5 className="card-title card-price">
-                        {p.price.toLocaleString("en-US", {
-                          style: "currency",
-                          currency: "USD",
-                        })}
-                      </h5>
-                    </div>
-                    <p className="card-text ">
-                      {p.description.substring(0, 60)}...
-                    </p>
-                    <div className="card-name-price">
-                      <button
-                        className="btn btn-info ms-1"
-                        onClick={() => navigate(`/product/${p.slug}`)}
-                      >
-                        More Details
-                      </button>
-                      {/* <button
-                    className="btn btn-dark ms-1"
-                    onClick={() => {
-                      setCart([...cart, p]);
-                      localStorage.setItem(
-                        "cart",
-                        JSON.stringify([...cart, p])
-                      );
-                      toast.success("Item Added to cart");
-                    }}
-                  >
-                    ADD TO CART
-                  </button> */}
-                    </div>
+                  <div className="product-overlay">
+                    <button
+                      className="view-details-button"
+                      onClick={() => navigate(`/product/${p.slug}`)}
+                    >
+                      View Details
+                    </button>
                   </div>
                 </div>
-              ))}
-            </div>
-            {/* <div className="m-2 p-3">
-            {products && products.length < total && (
-              <button
-                className="btn btn-warning"
-                onClick={(e) => {
-                  e.preventDefault();
-                  setPage(page + 1);
-                }}
-              >
-                {loading ? "Loading ..." : "Loadmore"}
-              </button>
-            )}
-          </div> */}
+                <div className="product-info">
+                  <h3 className="product-name">{p.name}</h3>
+                  <p className="product-description">
+                    {p.description.substring(0, 60)}...
+                  </p>
+                  <div className="product-footer">
+                    <span className="product-price">
+                      {p.price.toLocaleString("en-US", {
+                        style: "currency",
+                        currency: "USD",
+                      })}
+                    </span>
+                    <button
+                      className="quick-view-button"
+                      onClick={() => navigate(`/product/${p.slug}`)}
+                    >
+                      Quick View
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
-        </div>
+        )}
       </div>
     </Layout>
   );
